@@ -1,0 +1,136 @@
+---
+title: "6270 - CC6"
+subtitle: "life expectancy across countries"
+author: "Mengzhi Yuan"
+date: "`r Sys.Date()`"
+editor_options:
+  chunk_output_type: console
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 1
+    number_sections: true
+urlcolor: blue
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+
+# Packages
+
+```{r packages}
+
+# Required packages
+library(tidyverse)
+library(knitr)
+
+```
+
+# Introduction
+
+## Research Question
+
+**This report examines whether income inequality is associated with life expectancy across countries.** 
+
+##  Scientific Plausibility and Context
+
+Income inequality is plausibly associated with life expectancy because health is shaped not only by medical care, but also by broader social determinants such as income distribution, education, housing, and access to public services. The WHO World report on social determinants of health equity emphasizes that structural determinants, including economic systems and income inequality, shape the distribution of money, power, and resources, which in turn contribute to avoidable differences in health outcomes across and within countries.[@who2025]
+
+Prior research also suggests that this relationship is scientifically reasonable, although findings are not always fully consistent. Lynch et al. reviewed studies on income inequality and population health and found mixed evidence overall, but still noted that reducing inequality by improving the conditions of disadvantaged groups can improve health.[@lynch2004] Neumayer and Plümper further reported that greater pretax income inequality was associated with greater inequality in longevity across countries, while redistribution was associated with lower longevity inequality.[@neumayer2016] Together, these findings support examining whether countries with higher income inequality also tend to have lower life expectancy.[@neumayer2016; @lynch2004]
+
+# Material and Methods
+
+## Data
+
+```{r data code, results='hide'}
+
+# Load data
+
+hdr <- read_csv("../data/HDR23-24_subset.csv", show_col_types = FALSE)
+glimpse(hdr)
+summary(hdr)
+
+# clean Data
+
+analysis_data <- hdr %>%
+  select(country, le_2022, ineq_inc_2022) %>%
+  drop_na()
+
+glimpse(analysis_data)
+summary(analysis_data)
+
+
+```
+The data for this analysis were obtained from class VTPEH6105, the file HDR23-24_subset.csv, which contains country-level indicators for 2022. The dataset includes variables such as life expectancy ("le_2022"), income inequality ("ineq_inc_2022"), human development index, mean years of schooling, gross national income per capita, and other related indicators.
+
+For this report, the analysis focused on the association between income inequality in 2022 and life expectancy in 2022 across countries. Therefore, the primary variables used were ineq_inc_2022 and le_2022. The data were subset to retain only countries with non-missing values for both variables. No derived variables were created for the main analysis. 
+
+## Statistical Analyses
+
+To examine the relationship between income inequality and life expectancy across countries, we first conducted a descriptive summary and graphical exploration. A scatter plot was used to visually illustrate the relationship between income inequality and life expectancy.
+
+We then constructed a linear regression model with life expectancy as the dependent variable and income inequality as the independent variable. This method was chosen because both variables are continuous, and the research question focuses on determining whether a relationship exists between them.
+
+Model assumptions were evaluated by examining diagnostic plots for linearity, normality of residuals, homoscedasticity, and outlier distribution. Visual assessments were performed using residual plots and Q-Q plots, and the Shapiro-Wilk test was used to assess whether the residuals approximately follow a normal distribution. If any assumptions were found to be violated, the Spearman correlation test would be considered as a more robust nonparametric alternative.
+
+## Code
+
+All files used in this report are available in the following GitHub repository: https://github.com/grace912-yuan/6270-cc6.git 
+The repository includes the dataset, the R Markdown report, the bibliography file, and supporting documentation.
+
+# Results
+
+A total of 182 countries had non-missing data for both life expectancy in 2022 and income inequality in 2022.
+
+```{r scatterplot, fig.cap="Figure 1. Association between income inequality and life expectancy across countries in 2022."}
+
+# scatterplot
+ggplot(analysis_data, aes(x = ineq_inc_2022, y = le_2022)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "Income inequality (2022)",
+    y = "Life expectancy (2022)"
+  ) +
+  theme_minimal()
+```
+Figure 1 shows a negative association between income inequality and life expectancy across countries. Countries with higher income inequality generally tended to have lower life expectancy.
+
+```{r linear regression model}
+
+lm_income_le <- lm(le_2022 ~ ineq_inc_2022, data = analysis_data)
+
+summary(lm_income_le)
+
+```
+The simple linear regression model showed a statistically significant negative association between income inequality and life expectancy (Beta = -0.41, SE = 0.036, p < 2.2e-16). This means that for each 1 unit increase in income inequality, life expectancy was lower by about 0.41 years on average. The model explained 42.9% of the variation in life expectancy across countries (R² = 0.429).
+
+```{r Shapiro-Wilk test}
+
+shapiro.test(residuals(lm_income_le))
+
+```
+The Shapiro-Wilk test suggested that the residuals did not significantly deviate from normality (W = 0.989, p = 0.179), supporting the use of the linear regression model.
+
+# Conclusions
+
+This analysis found a **statistically significant negative association** between income inequality and life expectancy across countries in 2022. Countries with higher income inequality generally had lower life expectancy.
+
+This finding is consistent with the broader literature suggesting that social and economic conditions shape population health. The WHO World report on social determinants of health equity emphasizes that structural determinants such as income inequality influence the distribution of resources and contribute to avoidable differences in health outcomes.[@who2025] The result is also broadly consistent with Neumayer and Plümper, who reported that greater income inequality was associated with greater inequality in longevity across countries.[@neumayer2016] Although Lynch et al. noted that the evidence on income inequality and population health is mixed and not always generalizable across all settings, the present analysis still supports the plausibility of an important association between inequality and health at the country level.[@lynch2004]
+
+
+This study has certain limitations. Since it relies solely on cross-sectional national-level data from a single year, the findings cannot directly establish causal relationships. Furthermore, this simple model does not account for other factors that may influence life expectancy, such as national income, educational attainment, health systems, or regional disparities. Based on all the results in this study, it still supports the view that income inequality may be an important population-level factor associated with life expectancy.
+
+# AI use statement
+
+The report utilized ChatGPT to assist in correcting code errors and organizing information. All code was personally executed by the author and subjected to chart analysis.
+
+# Refference List
+
